@@ -6,6 +6,8 @@ import sys
 
 from osgeo import gdal
 import pygeoprocessing
+import numpy
+import scipy.ndimage
 
 gdal.SetCacheMax(2**27)
 
@@ -95,6 +97,52 @@ def _create_vector_mask(
         base_raster_path, target_mask_raster_path, gdal.GDT_Byte, [0])
     pygeoprocessing.rasterize(
         vector_path, target_mask_raster_path, burn_values=[1])
+
+
+def _wallpaper_raster(
+        base_raster_path, mask_raster_path, wallpaper_array,
+        target_raster_path):
+    """Wallpaper array to base via masked raster.
+
+    Args:
+        base_raster_path (str): path to base raster that is used as the
+            non-mask raster.
+        mask_raster_path (str): path to raster containing 1s where base should
+            be wallpapered with array
+        target_raster_path (str): path to desired target raster.
+
+    Returns:
+        None
+
+    """
+    mask_raster = gdal.OpenEx(mask_raster_path, gdal.OF_RASTER)
+    mask_band = mask_raster.GetRasterBand(1)
+
+    base_info = pygeoprocessing.get_raster_info(base_raster_path)
+    pygeoprocessing.new_raster_from_base(
+        base_raster_path, target_raster_path,
+        base_info['datatype'][0], base_info['nodata'])
+    target_raster = gdal.OpenEx(
+        target_raster_path, gdal.OF_RASTER | gdal.GA_Update)
+    target_band = target_raster.GetRasterBand(1)
+
+    wallpaper_array_wrap = scipy.ndimage.filters.generic_filter(
+        wallpaper_array, lambda x: x, size=wallpaper_array.shape,
+        mode='wrap')
+    for base_array, offset_dict in pygeoprocessing.iterblocks(
+            (base_raster_path, 1)):
+        mask_array = mask_band.ReadAsArray(**offset_dict)
+
+        ymin = offset_dict['yoff']
+        xmin = offset_dict['xoff']
+        ymax = offset_dict['yoff']+offset_dict['win_ysize']
+        xmax = offset_dict['xoff']+offset_dict['win_xsize']
+
+        target_array = numpy.where(
+            mask_array == 1, wallpaper_array_wrap[ymin:ymax, xmin:xmax],
+            base_array)
+
+        target_band.WriteArray(target_array, xoff=xmin, yoff=ymin)
 
 
 def main():
