@@ -18,3 +18,14 @@ Output
 ------
 
 Output will be generated in a folder in the current working directory called ``"wallpaper_workspace"`` this value can be overriden with the ``--workspace_dir`` command line argument. After a successful run, the directory will contain a set of GeoTiff files named ``{raster_base}_{scenario}.tif`` where ``raster_base`` is the base name of the raster processsed from the ``--raster_path_list`` argument and ``scenario`` is the value of the feature field in the vector given by ``--scenarios_vector_path``. These files will have the coverages indicated by the vector defined at ``parcels_vector_path_list``.
+
+Installation/Requirments
+------------------------
+
+Dependancies are specified in `requirements.txt`. Additionally you can use the `therealspring/inspring:latest` docker container to run this script as follows:
+
+```
+docker run --rm -it -v %CD%:/usr/local/workspace therealspring/inspring:latest .\wallpaper_raster.py --raster_path_list .\Test_Data\lulc --scenarios_vector_path .\Test_Data\Scenarios.shp --parcels_vector_path .\Test_Data\Test_Parcels.shp
+```
+
+If using a Docker container, note that file paths must be below and relative to the current working directory (``%CD%`` on windows and ```pwd``` on Linux).

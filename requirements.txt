@@ -1,0 +1,3 @@
+gdal
+pygeoprocessing
+numpy
