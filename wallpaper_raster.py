@@ -7,7 +7,6 @@ import sys
 from osgeo import gdal
 import pygeoprocessing
 import numpy
-import scipy.ndimage
 
 gdal.SetCacheMax(2**27)
 
