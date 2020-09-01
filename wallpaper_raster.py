@@ -121,28 +121,45 @@ def _wallpaper_raster(
     base_info = pygeoprocessing.get_raster_info(base_raster_path)
     pygeoprocessing.new_raster_from_base(
         base_raster_path, target_raster_path,
-        base_info['datatype'][0], base_info['nodata'])
+        base_info['datatype'], base_info['nodata'])
     target_raster = gdal.OpenEx(
         target_raster_path, gdal.OF_RASTER | gdal.GA_Update)
     target_band = target_raster.GetRasterBand(1)
 
-    wallpaper_array_wrap = scipy.ndimage.filters.generic_filter(
-        wallpaper_array, lambda x: x, size=wallpaper_array.shape,
-        mode='wrap')
-    for base_array, offset_dict in pygeoprocessing.iterblocks(
+    for offset_dict, base_array in pygeoprocessing.iterblocks(
             (base_raster_path, 1)):
         mask_array = mask_band.ReadAsArray(**offset_dict)
 
-        ymin = offset_dict['yoff']
-        xmin = offset_dict['xoff']
-        ymax = offset_dict['yoff']+offset_dict['win_ysize']
-        xmax = offset_dict['xoff']+offset_dict['win_xsize']
+        xoff = offset_dict['xoff']
+        yoff = offset_dict['yoff']
 
+        wallpaper_x = xoff % wallpaper_array.shape[1]
+        wallpaper_y = yoff % wallpaper_array.shape[0]
+
+        win_ysize = offset_dict['win_ysize']
+        win_xsize = offset_dict['win_xsize']
+        wallpaper_x_repeats = (
+            1 + ((wallpaper_x+win_xsize) // wallpaper_array.shape[1]))
+        wallpaper_y_repeats = (
+            1 + ((wallpaper_y+win_ysize) // wallpaper_array.shape[0]))
+        wallpaper_tiled = numpy.tile(
+            wallpaper_array,
+            (wallpaper_y_repeats, wallpaper_x_repeats))[
+            wallpaper_y:wallpaper_y+win_ysize,
+            wallpaper_x:wallpaper_x+win_xsize]
+
+        # LOGGER.debug(
+        #     f'''y,x: {wallpaper_y},{wallpaper_x} ysize/xsize: {win_ysize} {
+        #         win_xsize} y/x repeats: {
+        #         wallpaper_y_repeats} {wallpaper_x_repeats} sizes {
+        #         mask_array.shape}, {wallpaper_tiled.shape}/{
+        #         wallpaper_array.shape} {base_array.shape}''')
         target_array = numpy.where(
-            mask_array == 1, wallpaper_array_wrap[ymin:ymax, xmin:xmax],
+            mask_array == 1,
+            wallpaper_tiled,
             base_array)
 
-        target_band.WriteArray(target_array, xoff=xmin, yoff=ymin)
+        target_band.WriteArray(target_array, xoff=xoff, yoff=yoff)
 
 
 def main():
@@ -195,6 +212,13 @@ def main():
                 scenario_feature, scenario_vector_info['projection_wkt'],
                 raster_path)
             LOGGER.debug(scenario_array)
+
+            scenario_id = scenario_feature.GetField(args.scenario_id_field)
+            target_raster_path = os.path.join(
+                args.workspace_dir, f'{basename}_{scenario_id}')
+            _wallpaper_raster(
+                raster_path, parcel_mask_raster_path, scenario_array,
+                target_raster_path)
 
 
 if __name__ == '__main__':
