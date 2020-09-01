@@ -148,12 +148,6 @@ def _wallpaper_raster(
             wallpaper_y:wallpaper_y+win_ysize,
             wallpaper_x:wallpaper_x+win_xsize]
 
-        # LOGGER.debug(
-        #     f'''y,x: {wallpaper_y},{wallpaper_x} ysize/xsize: {win_ysize} {
-        #         win_xsize} y/x repeats: {
-        #         wallpaper_y_repeats} {wallpaper_x_repeats} sizes {
-        #         mask_array.shape}, {wallpaper_tiled.shape}/{
-        #         wallpaper_array.shape} {base_array.shape}''')
         target_array = numpy.where(
             mask_array == 1,
             wallpaper_tiled,
@@ -215,7 +209,7 @@ def main():
 
             scenario_id = scenario_feature.GetField(args.scenario_id_field)
             target_raster_path = os.path.join(
-                args.workspace_dir, f'{basename}_{scenario_id}')
+                args.workspace_dir, f'{basename}_{scenario_id}.tif')
             _wallpaper_raster(
                 raster_path, parcel_mask_raster_path, scenario_array,
                 target_raster_path)
@@ -223,12 +217,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-# orkspace = r"E:\NatCap\Golf\Comparison\Data"
-# folder = os.path.join(workspace, r"pol\Data_1m")
-# parcels = os.path.join(workspace, "golf_courses.shp")
-# scenarios = os.path.join(workspace, "scenarios.shp")
-# rasters = {'lulc': os.path.join(workspace, "mulc.tif")}
-# distance = 1340
-# tier = 1
-# tm0 = time.time()/60
