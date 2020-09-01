@@ -17,4 +17,4 @@ Command line arguments
 Output
 ------
 
-Output will be generated in a folder in the current working directory called ``"wallpaper_workspace"`` this value can be overriden with the ``--workspace_dir`` command line argument. After a successful run, the directory will contain a set of GeoTiff files named ``{raster_base}_{scenario}.tif`` where ``raster_base`` is the base name of the raster processsed from the ``--raster_path_list`` argument and ``scenario`` is the value of the feature field in the vector given by ``--scenarios_vector_path``.
+Output will be generated in a folder in the current working directory called ``"wallpaper_workspace"`` this value can be overriden with the ``--workspace_dir`` command line argument. After a successful run, the directory will contain a set of GeoTiff files named ``{raster_base}_{scenario}.tif`` where ``raster_base`` is the base name of the raster processsed from the ``--raster_path_list`` argument and ``scenario`` is the value of the feature field in the vector given by ``--scenarios_vector_path``. These files will have the coverages indicated by the vector defined at ``parcels_vector_path_list``.
