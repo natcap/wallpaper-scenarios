@@ -63,7 +63,6 @@ def _extract_intersecting_array_from_raster(
         scenario_boundary,
         feature_projection_wkt,
         raster_info['projection_wkt'])
-    LOGGER.debug(f'{scenario_boundary} {scenario_bb}')
 
     x_min, y_min = [
         int(v) for v in gdal.ApplyGeoTransform(
@@ -197,8 +196,8 @@ def main():
 
         # Create a vector mask
         LOGGER.info(
-            f'rasterizing parcels from {args.parcels_vector_path} on '
-            f'{raster_path} to {parcel_mask_raster_path}')
+            f'rasterizing parcels from: \n\t{args.parcels_vector_path} ON '
+            f'\n\t{raster_path} TO \n\t{parcel_mask_raster_path}')
         pygeoprocessing.new_raster_from_base(
             raster_path, parcel_mask_raster_path, gdal.GDT_Byte, [0])
         pygeoprocessing.rasterize(
@@ -207,14 +206,16 @@ def main():
         for scenario_feature in scenario_layer:
             scenario_id = scenario_feature.GetField(args.scenario_id_field)
             LOGGER.info(
-                f'extracting scenario array for scenario {scenario_id}')
+                f'extracting scenario array for scenario "{scenario_id}"')
             scenario_array = _extract_intersecting_array_from_raster(
                 scenario_feature, scenario_vector_info['projection_wkt'],
                 raster_path)
 
             target_raster_path = os.path.join(
                 args.workspace_dir, f'{basename}_{scenario_id}.tif')
-            LOGGER.info(f'wallpapering {basename} for scenario {scenario_id}')
+            LOGGER.info(
+                f'wallpapering "{basename}" raster for '
+                f'scenario "{scenario_id}"')
             _wallpaper_raster(
                 raster_path, parcel_mask_raster_path, scenario_array,
                 target_raster_path)
