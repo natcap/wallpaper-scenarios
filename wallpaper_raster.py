@@ -211,7 +211,6 @@ def main():
             scenario_array = _extract_intersecting_array_from_raster(
                 scenario_feature, scenario_vector_info['projection_wkt'],
                 raster_path)
-            LOGGER.debug(scenario_array)
 
             target_raster_path = os.path.join(
                 args.workspace_dir, f'{basename}_{scenario_id}.tif')
