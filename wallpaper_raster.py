@@ -183,6 +183,7 @@ def main():
         args.scenarios_vector_path)
 
     for raster_path in args.raster_path_list:
+        LOGGER.info(f'processing base raster {raster_path}')
         basename = os.path.splitext(os.path.basename(raster_path))[0]
         churn_dir = os.path.join(args.workspace_dir, f'churn')
         _makedirs(churn_dir)
@@ -195,20 +196,26 @@ def main():
             churn_dir, f'parcel_mask_{basename}.tif')
 
         # Create a vector mask
+        LOGGER.info(
+            f'rasterizing parcels from {args.parcels_vector_path} on '
+            f'{raster_path} to {parcel_mask_raster_path}')
         pygeoprocessing.new_raster_from_base(
             raster_path, parcel_mask_raster_path, gdal.GDT_Byte, [0])
         pygeoprocessing.rasterize(
             args.parcels_vector_path, parcel_mask_raster_path, burn_values=[1])
 
         for scenario_feature in scenario_layer:
+            scenario_id = scenario_feature.GetField(args.scenario_id_field)
+            LOGGER.info(
+                f'extracting scenario array for scenario {scenario_id}')
             scenario_array = _extract_intersecting_array_from_raster(
                 scenario_feature, scenario_vector_info['projection_wkt'],
                 raster_path)
             LOGGER.debug(scenario_array)
 
-            scenario_id = scenario_feature.GetField(args.scenario_id_field)
             target_raster_path = os.path.join(
                 args.workspace_dir, f'{basename}_{scenario_id}.tif')
+            LOGGER.info(f'wallpapering {basename} for scenario {scenario_id}')
             _wallpaper_raster(
                 raster_path, parcel_mask_raster_path, scenario_array,
                 target_raster_path)
